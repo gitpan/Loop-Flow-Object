@@ -1,0 +1,24 @@
+---
+abstract: 'Looping code of one object with forking on/off. Executing code, control count and exit from loop by the object methods.'
+author:
+  - 'Mikhail Che <m.che@aukama.dyndns.org>'
+build_requires:
+  Test::More: 0
+configure_requires:
+  Module::Build: 0.38
+dynamic_config: 1
+generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.112621'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Loop-Flow-Object
+provides:
+  Loop::Flow::Object:
+    file: lib/Loop/Flow/Object.pm
+    version: 0.01
+requires:
+  perl: 5.006
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.01
