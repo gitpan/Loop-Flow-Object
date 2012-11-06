@@ -16,7 +16,7 @@ Hello all! Nice health! Good thinks!
 
 =head1 NAME
 
-Loop::Flow::Object - запуск цикла для объекта с контролем и переключением ветвления, выполнение кода в указанных методах объекта.
+Loop::Flow::Object - запуск цикла для объекта с контролем и переключением ветвления (fork), выполнение кода в указанных методах объекта.
 
 Loop::Flow::Object - looping code of one object with forking on/off. Simple switch and count of forks.
 
@@ -25,11 +25,11 @@ Executing code, control count and exit from loop by the object methods.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 =head1 SYNOPSIS
@@ -66,18 +66,25 @@ None.
 =cut
 
 =head2 new(max_count=>..., forks=>..., debug=>...)
+
 Options:
 
 =over 4
 
 =item * max_count => <integer> (optional)
+
     infinitely looping if max_count => 0 || undef (default)
 
 =item * forks => <integer> (optional)
-    No forking, sequentially if forks => 0 || undef (default)
+
     Limit of forks
+    
+    No forking, sequentially if forks => 0 || undef (default)
+
+
 
 =item * debug => 0|1 (optional)
+
     0 - no print msg (default)
 
 =back
@@ -95,16 +102,18 @@ sub new {
 }
 
 =head2 start($obj, main=>'<main_method>', data=>'<data_method>', end=>'<end_method>',)
-Looping for $obj which have methods:
+
+Looping/forking for $obj which have methods:
 
 =over 4
 
-=item * string '<main_method>' - main code which execute in loop (as child process if forks) (mandatory)
+=item * B<main> => string '<main_method>' - main code which execute in loop (as child process if forks) (mandatory)
 
-=item * string '<data_method>' - hook which get/return data for '<main_method>'
-B<Attention>. If you define this method and it's return B<empty list> - WILL STOPS THE LOOP!
+=item * B<data> => string '<data_method>' - hook which get/return data for '<main_method>'
 
-=item * string '<end_method>' - hook which execute when end the '<main_method>' (child process exit if forks)
+B<Attention>. If you define this method and it's return B<empty list> - WILL STOPS THE LOOPING?, but will wait for childs if any.
+
+=item * B<end> => string '<end_method>' - hook which execute when end the '<main_method>' of one loop (child process exit if forks)
 
 =cut
 
@@ -115,8 +124,8 @@ sub start {
     my %stack = ();# для $self->{forks} = undef останется пустой
     my $count = 0;
     #~ while ( %stack != 0 || !$self->{max_count} || $count < $self->{max_count} ) {# ПОЕХАЛИ
-    until ( %stack == 0 && $self->{max_count} && $count == $self->{max_count} ) {# ПОЕХАЛИ (с)
-        print "START: ", (map {"[$_], "} (%stack != 0, !$self->{max_count},  $count < $self->{max_count})),"\n",;
+    until ( scalar keys %stack == 0 && $self->{max_count} && $count == $self->{max_count} ) {# ПОЕХАЛИ (с)
+        #~ print "START: ", (map {"[$_], "} (%stack != 0, !$self->{max_count},  $count < $self->{max_count})),"\n",;
         if ((!$self->{max_count} || $count < $self->{max_count}) && (!$self->{forks} || scalar keys %stack < $self->{forks})) {
             my @data = $self->data($obj, $meths{data}, $count);# данные, отправляемые в основной метод
             last unless @data;
@@ -129,6 +138,11 @@ sub start {
             delete @stack{ @pids };
         }
         
+    }
+    
+    while (scalar keys %stack) {
+        my @pids = $self->check_child();
+        delete @stack{ @pids };
     }
 }
 
@@ -216,19 +230,19 @@ You can also look for information at:
 
 =item * RT: CPAN's request tracker (report bugs here)
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Loop-Flow>
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Loop-Flow-Object>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
-L<http://annocpan.org/dist/Loop-Flow>
+L<http://annocpan.org/dist/Loop-Flow-Object>
 
 =item * CPAN Ratings
 
-L<http://cpanratings.perl.org/d/Loop-Flow>
+L<http://cpanratings.perl.org/d/Loop-Flow-Object>
 
 =item * Search CPAN
 
-L<http://search.cpan.org/dist/Loop-Flow/>
+L<http://search.cpan.org/dist/Loop-Flow-Object/>
 
 =back
 
