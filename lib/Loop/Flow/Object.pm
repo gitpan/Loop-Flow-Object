@@ -25,34 +25,48 @@ Executing code, control count and exit from loop by the object methods.
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 
 =head1 SYNOPSIS
 
+    package Some::My::Module;
+    
+    sub new {
+        my $class = shift;
+        ...
+    
+    }
+    sub one {# main code in loop
+        my $self = shift;
+        my @data = @_;
+        ...
+    }
+    
+    sub data {# data for main code in loop
+        my $self = shift;
+        my $count = shift;
+        ...
+    }
+    
+    sub end {# end hook
+        my $self = shift;
+        ....
+    }
+    
+    package main;
+    
     use Loop::Flow::Object;
     use Some::My::Module;
     
     my $obj = Some::My::Module->new(...);
     
-    # no-no this is on Some/My/Module.pm !!
-    sub Some::My::Module::one {# main code in loop
-        my $self = shift;
-        my @data = @_;
-        ...
-    }
-    # no-no this is on Some/My/Module.pm !!
-    sub Some::My::Module::data {# data for main code in loop
-        my $self = shift;
-        my $count = shift;
-        ...
-    }
     my $loop = Loop::Flow::Object->new(max_count=>..., forks=>..., debug=>...);
-    $loop->start($obj, main=>'one', data=>'data', end=>'...',);
+    $loop->start($obj, main=>'one', data=>'data', end=>'end',);
     ...
 
 
@@ -71,11 +85,11 @@ Options:
 
 =over 4
 
-=item * max_count => <integer> (optional)
+=item * B<max_count> => <integer> (optional)
 
     infinitely looping if max_count => 0 || undef (default)
 
-=item * forks => <integer> (optional)
+=item * B<forks> => <integer> (optional)
 
     Limit of forks
     
@@ -83,7 +97,7 @@ Options:
 
 
 
-=item * debug => 0|1 (optional)
+=item * B<debug> => 0|1 (optional)
 
     0 - no print msg (default)
 
@@ -95,6 +109,7 @@ sub new {
     my $self = {
         max_count=>undef,
         forks => undef,
+        debug => undef,
         @_,
     };
     bless $self, $class;
@@ -111,7 +126,9 @@ Looping/forking for $obj which have methods:
 
 =item * B<data> => string '<data_method>' - hook which get/return data for '<main_method>'
 
-B<Attention>. If you define this method and it's return B<empty list> - WILL STOPS THE LOOPING?, but will wait for childs if any.
+Returning list of data will pass to the main method.
+
+B<Attention>. If you define this method and it's return B<empty list> - WILL STOPS THE LOOPING, but will wait for childs if any.
 
 =item * B<end> => string '<end_method>' - hook which execute when end the '<main_method>' of one loop (child process exit if forks)
 
@@ -206,7 +223,7 @@ sub check_child {# просто проверить и вернуть иды за
 
 =head1 AUTHOR
 
-Mikhail Che, C<< <m.che at aukama.dyndns.org> >>
+Mikhail Che, C<< <m.che a@t aukama.dyndns.org> >>
 
 =head1 BUGS
 
